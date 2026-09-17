@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wren",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start"],
+      "port": 4747
+    },
+    {
+      "name": "wren-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "demo:start"],
+      "port": 4748
+    }
+  ]
+}

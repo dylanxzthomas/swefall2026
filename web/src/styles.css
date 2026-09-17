@@ -1,0 +1,132 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* One palette: cool off-white paper, near-black ink, a single green accent. Dark mode swaps the same tokens. */
+:root {
+  color-scheme: light dark;
+  --paper: #f4f4f1;
+  --paper-2: #ffffff;
+  --ink: #17181a;
+  --ink-2: #5d6066;
+  --ink-3: #9a9da3;
+  --line: #e2e2dd;
+  --line-2: #cfcfc9;
+  --accent: #157a5b;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3f0ea;
+  --danger: #b3261e;
+  --danger-soft: #f6e4e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131415;
+    --paper-2: #1b1c1e;
+    --ink: #ebebe7;
+    --ink-2: #a3a6ab;
+    --ink-3: #6d7076;
+    --line: #2a2b2e;
+    --line-2: #3a3b3f;
+    --accent: #3fc59d;
+    --accent-ink: #0b1613;
+    --accent-soft: #16302a;
+    --danger: #e5534b;
+    --danger-soft: #3a1f1d;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131415;
+  --paper-2: #1b1c1e;
+  --ink: #ebebe7;
+  --ink-2: #a3a6ab;
+  --ink-3: #6d7076;
+  --line: #2a2b2e;
+  --line-2: #3a3b3f;
+  --accent: #3fc59d;
+  --accent-ink: #0b1613;
+  --accent-soft: #16302a;
+  --danger: #e5534b;
+  --danger-soft: #3a1f1d;
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --radius-card: 12px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+textarea,
+input,
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+::selection {
+  background: var(--accent-soft);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+/* Shape rule for the whole console: surfaces are 12px, interactive controls are pills. */
+
+.breathe {
+  animation: breathe 2.6s ease-in-out infinite;
+}
+.ring {
+  animation: ring 1.4s ease-out infinite;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+@keyframes ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .breathe,
+  .ring {
+    animation: none;
+  }
+}

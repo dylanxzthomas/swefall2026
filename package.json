@@ -1,0 +1,42 @@
+{
+  "name": "wren",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A personal assistant that meets with you during the day, thinks while you're away, and talks.",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx watch server/index.ts",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "node --disable-warning=ExperimentalWarning --import tsx server/index.ts",
+    "demo": "WREN_PROFILE=demo node --disable-warning=ExperimentalWarning --import tsx server/demo.ts",
+    "demo:start": "WREN_PROFILE=demo node --disable-warning=ExperimentalWarning --import tsx server/index.ts",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@hono/node-server": "^2.1.1",
+    "@phosphor-icons/react": "^2.1.10",
+    "hono": "^4.13.5",
+    "motion": "^13.2.0",
+    "node-ical": "^0.27.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^10.0.5",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.5.4",
+    "vite": "^7.0.0"
+  }
+}
