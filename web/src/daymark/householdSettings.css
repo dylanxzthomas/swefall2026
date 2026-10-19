@@ -1,0 +1,94 @@
+/* Household stays one sheet: one-level rows, with forms only on request. */
+.dm-sheet[aria-label="Household"] .dm-household-profile {
+  padding: 12px 2px 20px;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.dm-sheet[aria-label="Household"] .dm-household-profile > div { min-width: 0; }
+.dm-sheet[aria-label="Household"] .dm-household-profile h3 {
+  font-size: var(--dm-body);
+  font-weight: 600;
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+.dm-household-group { margin: 0 0 22px; }
+.dm-household-group > h3 {
+  padding: 0 3px;
+  margin: 0 0 7px;
+  color: var(--dm-muted);
+  font-size: var(--dm-caption);
+  font-weight: 500;
+}
+.dm-household-group > details {
+  margin: 0;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--dm-line);
+  border-radius: 0;
+  background: var(--dm-surface);
+  font-size: var(--dm-label);
+  overflow-wrap: anywhere;
+}
+.dm-household-group > details:nth-child(2),
+.dm-household-group > .dm-gmail-connection:nth-child(2) { border-radius: 14px 14px 0 0; }
+.dm-household-group > details:last-child { border-radius: 0 0 14px 14px; border-bottom: 0; }
+.dm-household-group > details:only-of-type:nth-child(2) { border-radius: 14px; }
+.dm-household-group > details[open] { padding-bottom: 16px; }
+.dm-household-group > details > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  list-style: none;
+  min-height: 54px;
+  padding: 14px 22px 14px 0;
+  font-size: var(--dm-control);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.dm-household-group > details > summary::-webkit-details-marker { display: none; }
+.dm-household-group > details > summary::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 22px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--dm-muted);
+  border-top: 1.5px solid var(--dm-muted);
+  transform: rotate(45deg);
+}
+.dm-household-group > details[open] > summary::after { transform: rotate(135deg); }
+.dm-household-group > details > summary > svg { display: none; }
+.dm-settings-value { color: var(--dm-muted); font-size: var(--dm-caption); font-weight: 400; margin-left: auto; }
+.dm-household-group p { line-height: 1.55; text-wrap: pretty; }
+.dm-household-group .dm-gmail-connection { margin: 0; padding: 14px; border: 0; border-bottom: 1px solid var(--dm-line); background: var(--dm-surface); border-radius: 0; }
+.dm-household-group .dm-gmail-row { gap: 10px; }
+.dm-household-group .dm-gmail-row > div { min-width: 0; }
+.dm-household-group .dm-gmail-row > svg { display: none; }
+.dm-household-group .dm-gmail-row p { overflow-wrap: anywhere; }
+.dm-settings-privacy h4 { font-size: var(--dm-label); font-weight: 600; margin: 20px 0 6px; }
+.dm-settings-privacy h4:first-child { margin-top: 0; }
+.dm-settings-privacy p { margin: 0 0 12px; }
+.dm-sheet[aria-label="Household"] .dm-household-account { width: 100%; margin-top: 0; }
+@media (max-width: 400px) {
+  .dm-household-group .dm-pair { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dm-household-group > details > summary { transition: color .15s ease; }
+}
+
+/* The title and Done control remain separate at increased text sizes. */
+.dm-sheet[aria-label="Household"] > header { justify-content: space-between; padding: 10px 0; }
+.dm-sheet[aria-label="Household"] > header h2 { text-align: left; }
+.dm-sheet[aria-label="Household"] > header button { position: static; flex-shrink: 0; }
+.dm-household-group .dm-gmail-row { flex-wrap: wrap; }
+.dm-household-group .dm-gmail-row > div { flex: 1 1 9em; }
+.dm-household-group .dm-gmail-row h3,
+.dm-household-group .dm-gmail-row button { font-size: var(--dm-control); }
+.dm-household-group .dm-gmail-connection p,
+.dm-household-group .dm-gmail-consent .dm-check { font-size: var(--dm-label); }
+.dm-household-group .dm-gmail-row p,
+.dm-household-group .dm-gmail-more summary { font-size: var(--dm-caption); }

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="1390" viewBox="0 0 2500 1390" role="img" aria-labelledby="title desc">
+<title id="title">Sola architecture — personal, proactive, accountable</title>
+<desc id="desc">Target architecture for Daymark. Chat, voice, connected app events, due times and verified responses trigger Sola's conversation coordinator. Recent context and confirmed family memory inform bounded task workers. Saved task specifications configure wakeups. Workers prepare with granted read tools; an isolated sandbox is optional. Parent approval precedes external execution through authorized provider adapters or the connected iPhone. Verification records receipts and chooses a reply, app update or silence. Convex stores durable task state separately from conversational and family memory; a memory curator proposes updates after relevant work. This is a design, not a deployment or feature-completion claim.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#63736d"/></marker>
+</defs>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; fill:#23372f; }
+.title { font-size:53px; font-weight:700; letter-spacing:-1.4px; }
+.subtitle { font-size:25px; fill:#68776f; }
+.label { font-size:18px; font-weight:600; letter-spacing:2px; fill:#78867e; }
+.heading { font-size:28px; font-weight:600; }
+.body { font-size:23px; fill:#4c6356; }
+.edge-label { font-size:20px; fill:#64766a; paint-order:stroke; stroke:#ffffff; stroke-width:9; stroke-linejoin:round; }
+.small { font-size:20px; fill:#697970; }
+.edge { fill:none; stroke:#7d8b82; stroke-width:2.3; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#arrow); }
+.optional { stroke-dasharray:8 7; }
+</style>
+<rect width="2500" height="1390" fill="#fff"/>
+<rect x="28" y="24" width="2444" height="1338" rx="30" fill="#fff" stroke="#e3e9e3" stroke-width="2"/>
+
+<text x="65" y="105" class="title" text-anchor="start">Sola architecture</text>
+<text x="65" y="148" class="subtitle" text-anchor="start">A familiar assistant that prepares, follows through, and remembers what matters.</text>
+<rect x="1978" y="72" width="452" height="48" rx="24" fill="#f1f5ef"/>
+<text x="2204" y="103" class="label" text-anchor="middle">TARGET DESIGN  ·  01 OCT 2026</text>
+<text x="65" y="218" class="label" text-anchor="start">INPUTS</text>
+<text x="500" y="218" class="label" text-anchor="start">CONVERSATION &amp; MEMORY</text>
+<text x="1010" y="218" class="label" text-anchor="start">DURABLE TASKS</text>
+<text x="1535" y="218" class="label" text-anchor="start">REVIEW</text>
+<text x="2005" y="218" class="label" text-anchor="start">EXECUTION &amp; RESULTS</text>
+<path d="M 370 392 H 430 V 570 H 500" class="edge"/>
+<path d="M 370 588 H 430 V 570" class="edge"/>
+<path d="M 370 783 H 430 V 570" class="edge"/>
+<path d="M 690 490 V 385" class="edge" marker-start="url(#arrow)"/>
+<text x="690" y="442" class="edge-label" text-anchor="middle">Summarize / retrieve</text>
+<path d="M 690 820 V 650" class="edge" marker-start="url(#arrow)"/>
+<text x="690" y="746" class="edge-label" text-anchor="middle">Confirmed context</text>
+<path d="M 880 570 H 1010" class="edge"/>
+<text x="945" y="548" class="edge-label" text-anchor="middle">Delegate</text>
+<path d="M 1210 385 V 490" class="edge"/>
+<text x="1210" y="442" class="edge-label" text-anchor="middle">Load specification</text>
+<path d="M 1410 310 H 1535" class="edge"/>
+<text x="1470" y="291" class="edge-label" text-anchor="middle">Rules</text>
+<path d="M 1710 385 V 441 H 1370 V 490" class="edge"/>
+<text x="1535" y="425" class="edge-label" text-anchor="middle">Wake / resume</text>
+<path d="M 1410 560 H 1535" class="edge"/>
+<text x="1471" y="537" class="edge-label" text-anchor="middle">Draft</text>
+<path d="M 1885 570 H 2005" class="edge"/>
+<text x="1945" y="548" class="edge-label" text-anchor="middle">Approved</text>
+<path d="M 1710 650 V 699 H 1335 V 650" class="edge"/>
+<text x="1540" y="725" class="edge-label" text-anchor="middle">Edits return to preparation</text>
+<path d="M 2222 385 V 490" class="edge"/>
+<text x="2222" y="442" class="edge-label" text-anchor="middle">Authorize</text>
+<path d="M 1210 650 V 770" class="edge" marker-start="url(#arrow)"/>
+<text x="1210" y="729" class="edge-label" text-anchor="middle">Read / prepare</text>
+<path d="M 1060 650 V 684 H 946 V 1120 H 1010" class="edge" marker-start="url(#arrow)"/>
+<text transform="translate(925 902) rotate(-90)" class="edge-label" text-anchor="middle">Checkpoint / resume</text>
+<path d="M 1410 850 H 1535" class="edge optional" marker-start="url(#arrow)"/>
+<text x="1471" y="833" class="edge-label" text-anchor="middle">If needed</text>
+<path d="M 2222 650 V 790" class="edge"/>
+<text x="2222" y="736" class="edge-label" text-anchor="middle">Provider result</text>
+<path d="M 2222 930 V 1050" class="edge"/>
+<text x="2222" y="1000" class="edge-label" text-anchor="middle">Known outcome</text>
+<path d="M 2005 860 H 1945 V 1120 H 1885" class="edge"/>
+<text x="1945" y="983" class="edge-label" text-anchor="middle">Record evidence</text>
+<path d="M 1100 1210 V 1250 H 215 V 1150" class="edge"/>
+<text x="672" y="1284" class="edge-label" text-anchor="middle">Completed work → memory candidates</text>
+<path d="M 370 1080 H 435 V 900 H 500" class="edge"/>
+<text x="435" y="994" class="edge-label" text-anchor="middle">Propose</text>
+<rect x="65" y="330" width="305" height="125" rx="22" fill="#f4f6f3" stroke="#d8e2d8" stroke-width="2"/>
+<text x="217.5" y="385.5" class="heading" text-anchor="middle">Chat &amp; voice</text>
+<text x="217.5" y="423.5" class="body" text-anchor="middle">Ask, clarify, correct</text>
+<rect x="65" y="525" width="305" height="125" rx="22" fill="#f4f6f3" stroke="#d8e2d8" stroke-width="2"/>
+<text x="217.5" y="580.5" class="heading" text-anchor="middle">Connected app events</text>
+<text x="217.5" y="618.5" class="body" text-anchor="middle">School mail · calendars</text>
+<rect x="65" y="720" width="305" height="125" rx="22" fill="#f4f6f3" stroke="#d8e2d8" stroke-width="2"/>
+<text x="217.5" y="775.5" class="heading" text-anchor="middle">Due times &amp; responses</text>
+<text x="217.5" y="813.5" class="body" text-anchor="middle">Schedules · caregiver replies</text>
+<path d="M 500,257 A 190.0,17 0 0 1 880,257 V 368 A 190.0,17 0 0 1 500,368 Z" fill="#e7f2df" stroke="#afc69f" stroke-width="2"/>
+<ellipse cx="690.0" cy="257" rx="190.0" ry="17" fill="#e7f2df" stroke="#afc69f" stroke-width="2"/>
+<text x="690.0" y="302.0" class="heading" text-anchor="middle">Recent context</text>
+<text x="690.0" y="340.0" class="body" text-anchor="middle">Conversation summary</text>
+<text x="690.0" y="371.0" class="body" text-anchor="middle">Relevant source references</text>
+<rect x="500" y="490" width="380" height="160" rx="22" fill="#ffe6ce" stroke="#e3bf99" stroke-width="2"/>
+<text x="690.0" y="547.5" class="heading" text-anchor="middle">Sola · main agent</text>
+<text x="690.0" y="585.5" class="body" text-anchor="middle">Tone, intent &amp; capabilities</text>
+<text x="690.0" y="616.5" class="body" text-anchor="middle">Answer or delegate</text>
+<path d="M 500,837 A 190.0,17 0 0 1 880,837 V 963 A 190.0,17 0 0 1 500,963 Z" fill="#e7f2df" stroke="#afc69f" stroke-width="2"/>
+<ellipse cx="690.0" cy="837" rx="190.0" ry="17" fill="#e7f2df" stroke="#afc69f" stroke-width="2"/>
+<text x="690.0" y="889.5" class="heading" text-anchor="middle">Family memory</text>
+<text x="690.0" y="927.5" class="body" text-anchor="middle">Confirmed facts &amp; preferences</text>
+<text x="690.0" y="958.5" class="body" text-anchor="middle">Sources, versions &amp; corrections</text>
+<rect x="65" y="1010" width="305" height="140" rx="22" fill="#edf4ec" stroke="#c8d8c3" stroke-width="2"/>
+<text x="217.5" y="1057.5" class="heading" text-anchor="middle">Memory curator</text>
+<text x="217.5" y="1095.5" class="body" text-anchor="middle">After relevant work</text>
+<text x="217.5" y="1126.5" class="body" text-anchor="middle">Propose facts &amp; routines</text>
+<path d="M 1010,257 A 200.0,17 0 0 1 1410,257 V 368 A 200.0,17 0 0 1 1010,368 Z" fill="#e7f2f7" stroke="#a8c8d8" stroke-width="2"/>
+<ellipse cx="1210.0" cy="257" rx="200.0" ry="17" fill="#e7f2f7" stroke="#a8c8d8" stroke-width="2"/>
+<text x="1210.0" y="302.0" class="heading" text-anchor="middle">Saved task specification</text>
+<text x="1210.0" y="340.0" class="body" text-anchor="middle">Outcome · trigger · constraints</text>
+<text x="1210.0" y="371.0" class="body" text-anchor="middle">Steps · approval points</text>
+<rect x="1535" y="240" width="350" height="145" rx="22" fill="#fff1c5" stroke="#dfcb87" stroke-width="2"/>
+<text x="1710.0" y="290.0" class="heading" text-anchor="middle">Durable wakeups</text>
+<text x="1710.0" y="328.0" class="body" text-anchor="middle">Scheduled time or event</text>
+<text x="1710.0" y="359.0" class="body" text-anchor="middle">Resume the right task</text>
+<rect x="1010" y="490" width="400" height="160" rx="22" fill="#eaf3f2" stroke="#a8c9c5" stroke-width="2"/>
+<text x="1210.0" y="547.5" class="heading" text-anchor="middle">Task worker</text>
+<text x="1210.0" y="585.5" class="body" text-anchor="middle">Bounded work for one outcome</text>
+<text x="1210.0" y="616.5" class="body" text-anchor="middle">Pause, resume, or cancel</text>
+<rect x="1535" y="490" width="350" height="160" rx="22" fill="#fff1c5" stroke="#dfcb87" stroke-width="2"/>
+<text x="1710.0" y="547.5" class="heading" text-anchor="middle">Parent review</text>
+<text x="1710.0" y="585.5" class="body" text-anchor="middle">Exact content &amp; destination</text>
+<text x="1710.0" y="616.5" class="body" text-anchor="middle">Approve · edit · cancel</text>
+<path d="M 2005,257 A 217.5,17 0 0 1 2440,257 V 368 A 217.5,17 0 0 1 2005,368 Z" fill="#e7f2f7" stroke="#a8c8d8" stroke-width="2"/>
+<ellipse cx="2222.5" cy="257" rx="217.5" ry="17" fill="#e7f2f7" stroke="#a8c8d8" stroke-width="2"/>
+<text x="2222.5" y="302.0" class="heading" text-anchor="middle">Capabilities &amp; credentials</text>
+<text x="2222.5" y="340.0" class="body" text-anchor="middle">Server-authorized connections</text>
+<text x="2222.5" y="371.0" class="body" text-anchor="middle">Secrets stay outside the model</text>
+<rect x="2005" y="490" width="435" height="160" rx="22" fill="#ffdfbf" stroke="#d8ae80" stroke-width="2"/>
+<text x="2222.5" y="547.5" class="heading" text-anchor="middle">Approved execution</text>
+<text x="2222.5" y="585.5" class="body" text-anchor="middle">Google · Microsoft · caregiver mail</text>
+<text x="2222.5" y="616.5" class="body" text-anchor="middle">Apple Calendar on authorized iPhone</text>
+<rect x="1010" y="770" width="400" height="160" rx="22" fill="#fff1e2" stroke="#d8c3ab" stroke-width="2"/>
+<text x="1210.0" y="827.5" class="heading" text-anchor="middle">Read &amp; prepare tools</text>
+<text x="1210.0" y="865.5" class="body" text-anchor="middle">Granted access only</text>
+<text x="1210.0" y="896.5" class="body" text-anchor="middle">Sources → editable deliverables</text>
+<rect x="1535" y="790" width="350" height="140" rx="22" fill="#f8f8f5" stroke="#a5b2a5" stroke-width="2" stroke-dasharray="9 6"/>
+<text x="1710.0" y="837.5" class="heading" text-anchor="middle">Optional sandbox</text>
+<text x="1710.0" y="875.5" class="body" text-anchor="middle">File / browser work if needed</text>
+<text x="1710.0" y="906.5" class="body" text-anchor="middle">No direct write bypass</text>
+<rect x="2005" y="790" width="435" height="140" rx="22" fill="#e1f0e3" stroke="#a1c2a5" stroke-width="2"/>
+<text x="2222.5" y="837.5" class="heading" text-anchor="middle">Verify result</text>
+<text x="2222.5" y="875.5" class="body" text-anchor="middle">Read-back or acceptance evidence</text>
+<text x="2222.5" y="906.5" class="body" text-anchor="middle">Partial / uncertain stays explicit</text>
+<path d="M 1010,1067 A 437.5,17 0 0 1 1885,1067 V 1193 A 437.5,17 0 0 1 1010,1193 Z" fill="#ddf0ee" stroke="#9ebfba" stroke-width="2"/>
+<ellipse cx="1447.5" cy="1067" rx="437.5" ry="17" fill="#ddf0ee" stroke="#9ebfba" stroke-width="2"/>
+<text x="1447.5" y="1119.5" class="heading" text-anchor="middle">Durable task state · Convex</text>
+<text x="1447.5" y="1157.5" class="body" text-anchor="middle">Source references · jobs · approvals · attempts · receipts</text>
+<text x="1447.5" y="1188.5" class="body" text-anchor="middle">Authoritative records, separate from conversational memory</text>
+<rect x="2005" y="1050" width="435" height="160" rx="22" fill="#dcebd9" stroke="#a7bea1" stroke-width="2"/>
+<text x="2222.5" y="1107.5" class="heading" text-anchor="middle">Deliver or stay quiet</text>
+<text x="2222.5" y="1145.5" class="body" text-anchor="middle">Update Tasks / Calendar / Library</text>
+<text x="2222.5" y="1176.5" class="body" text-anchor="middle">Reply only when useful</text>
+<text x="65" y="1335" class="label" text-anchor="start">DESIGN BOUNDARY</text>
+<text x="280" y="1335" class="small" text-anchor="start">Target architecture, not a feature-completion claim. Routine preparation can be automatic; external writes require approval.</text>
+</svg>

@@ -48,6 +48,7 @@ export interface StructuredOptions<T> {
   purpose: string
   effort?: Effort
   mock: T
+  system?: string
 }
 
 function textOf(content: { type: string; text?: string }[]): string {
@@ -179,7 +180,7 @@ export class Brain {
       const res = await client.messages.parse({
         model: this.model,
         max_tokens: 16000,
-        system: this.systemBlocks(),
+        system: opts.system ?? this.systemBlocks(),
         thinking: { type: 'adaptive' },
         output_config: { effort: opts.effort ?? 'high', format: zodOutputFormat(schema) },
         messages: opts.messages,

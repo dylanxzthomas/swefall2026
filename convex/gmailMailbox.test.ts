@@ -1,0 +1,130 @@
+// @vitest-environment node
+import { beforeEach, expect, it, vi } from 'vitest'
+const mocks = vi.hoisted(() => ({ list: vi.fn(), get: vi.fn(), history: vi.fn(), profile: vi.fn(), send: vi.fn(), drafts: vi.fn(), attachment: vi.fn() }))
+vi.mock('@googleapis/gmail', () => ({ gmail: () => ({ users: { getProfile: mocks.profile, history: { list: mocks.history }, messages: { list: mocks.list, get: mocks.get, send: mocks.send, attachments: { get: mocks.attachment } }, drafts: { create: mocks.drafts } } }) }))
+import { readMailboxBatch, MailboxResync } from './gmailMailbox'
+const window = { request: { kind: 'check' as const, query: '', lookbackDays: 30 }, from: 1000, through: 5000 }
+const mail = (id = 'one', sender = 'parent@anyschool.example') => ({ id, threadId: 'thread', internalDate: '2000', labelIds: ['INBOX'], payload: { mimeType: 'text/plain', headers: [{ name: 'From', value: sender }, { name: 'Subject', value: 'Permission form' }], body: { data: Buffer.from('Return the form by October 10.').toString('base64url') } } })
+beforeEach(() => { vi.resetAllMocks(); mocks.profile.mockResolvedValue({ data: { historyId: '10' } }); mocks.list.mockResolvedValue({ data: { messages: [{ id: 'one' }] } }); mocks.get.mockImplementation(async ({ id }) => ({ data: mail(id) })) })
+it('captures RFC reply routing only from valid top-level source headers in the account-bound read', async () => {
+  const message = mail()
+  message.payload.headers.push({ name: 'Message-ID', value: '<notice@school.example>' }, { name: 'References', value: '<earlier@school.example>' })
+  mocks.get.mockResolvedValue({ data: message })
+  expect((await readMailboxBatch({} as any, window, async () => true)).messages[0].replyRouting).toEqual({ threadId: 'thread', inReplyTo: '<notice@school.example>', references: ['<earlier@school.example>', '<notice@school.example>'], subject: 'Re: Permission form' })
+  message.payload.headers[1].value = '=?UTF-8?Q?Permission_form?='
+  expect((await readMailboxBatch({} as any, window, async () => true)).messages[0]).toMatchObject({ subject: 'Permission form', replyRouting: { subject: 'Re: Permission form' } })
+  message.payload.headers.push({ name: 'Message-ID', value: '<second@school.example>' })
+  expect((await readMailboxBatch({} as any, window, async () => true)).messages[0].replyRouting).toBeUndefined()
+  expect(mocks.send).not.toHaveBeenCalled(); expect(mocks.drafts).not.toHaveBeenCalled()
+})
+it('reads all inbox senders and captures the baseline checkpoint before paging', async () => {
+  const result = await readMailboxBatch({} as any, window, async () => true)
+  expect(result.messages[0]).toMatchObject({ sender: 'parent@anyschool.example', providerId: 'one', text: 'Return the form by October 10.' })
+  expect(result.baselineHistoryId).toBe('10')
+  expect(mocks.list).toHaveBeenCalledWith(expect.objectContaining({ q: expect.stringContaining('in:inbox'), maxResults: 10, includeSpamTrash: false }), expect.objectContaining({ timeout: 10000, retry: false }))
+  expect(mocks.profile.mock.invocationCallOrder[0]).toBeLessThan(mocks.list.mock.invocationCallOrder[0])
+  expect(mocks.send).not.toHaveBeenCalled(); expect(mocks.drafts).not.toHaveBeenCalled(); expect(mocks.attachment).not.toHaveBeenCalled()
+})
+it('reuses the captured baseline and refuses every disallowed label even in search results', async () => {
+  mocks.list.mockResolvedValue({ data: { messages: ['spam', 'trash', 'draft', 'archived'].map(id => ({ id })) } })
+  mocks.get.mockImplementation(async ({ id }) => ({ data: { ...mail(id), labelIds: ({ spam: ['SPAM'], trash: ['TRASH'], draft: ['DRAFT'], archived: [] } as Record<string, string[]>)[id] } }))
+  const result = await readMailboxBatch({} as any, { ...window, baselineHistoryId: '10' }, async () => true)
+  expect(result.messages).toEqual([]); expect(result.removedIds).toHaveLength(4); expect(mocks.profile).not.toHaveBeenCalled()
+  const search = await readMailboxBatch({} as any, { ...window, request: { kind: 'search', query: 'trip', lookbackDays: 30 } }, async () => true)
+  expect(search.messages.map(m => m.providerId)).toEqual(['archived'])
+})
+it('searches archived and sent mail without silently treating it as inbox scanning', async () => {
+  mocks.get.mockResolvedValue({ data: { ...mail(), labelIds: ['SENT'] } })
+  const r = await readMailboxBatch({} as any, { ...window, request: { kind: 'search', query: 'to:school@example.test', lookbackDays: 365 } }, async () => true)
+  expect(r.messages).toHaveLength(1); expect(mocks.profile).not.toHaveBeenCalled()
+  expect(mocks.list.mock.calls[0][0].q).not.toContain('in:inbox')
+})
+it('stops before reading another body after permission is revoked', async () => {
+  mocks.list.mockResolvedValue({ data: { messages: [{ id: 'one' }, { id: 'two' }] } })
+  const permit = vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(true).mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+  await expect(readMailboxBatch({} as any, window, permit)).rejects.toThrow('stopped')
+  expect(mocks.get).toHaveBeenCalledTimes(1)
+})
+it('does not advance after a partial provider failure or malformed message', async () => {
+  mocks.get.mockRejectedValueOnce({ response: { status: 503 } })
+  await expect(readMailboxBatch({} as any, window, async () => true)).rejects.toBeTruthy()
+  mocks.get.mockResolvedValue({ data: mail('wrong') })
+  await expect(readMailboxBatch({} as any, window, async () => true)).rejects.toThrow('different message')
+  mocks.get.mockResolvedValue({ data: { ...mail(), internalDate: '2e3' } })
+  await expect(readMailboxBatch({} as any, window, async () => true)).rejects.toThrow('received date')
+})
+
+it.each(['account', 'listing', 'message', 'history'] as const)('reports the %s failure stage without copying a provider response', async failedStage => {
+  const marker = vi.fn(), error = { response: { status: 503, data: 'synthetic-private-provider-body' } }
+  const options = { ...window, accountEmail: 'parent@example.test', ...(failedStage === 'history' ? { mode: 'history', historyId: '10' } : {}) }
+  mocks.profile.mockResolvedValue({ data: { emailAddress: 'parent@example.test', historyId: '10' } })
+  const failing = { account: mocks.profile, listing: mocks.list, message: mocks.get, history: mocks.history }[failedStage]
+  failing.mockRejectedValueOnce(error)
+  await expect(readMailboxBatch({} as any, options, async () => true, marker)).rejects.toBe(error)
+  expect(marker.mock.calls.at(-1)).toEqual([failedStage])
+  expect(JSON.stringify(marker.mock.calls)).not.toContain('synthetic-private-provider-body')
+})
+it('skips vanished messages with explicit removal and labels unread content incomplete', async () => {
+  mocks.get.mockRejectedValueOnce({ response: { status: 404 } })
+  expect((await readMailboxBatch({} as any, window, async () => true)).removedIds).toEqual(['one'])
+  mocks.get.mockResolvedValue({ data: { ...mail(), snippet: 'Only a preview', payload: { ...mail().payload, mimeType: 'application/pdf', body: undefined } } })
+  const r = await readMailboxBatch({} as any, window, async () => true)
+  expect(r.messages[0].extraction.incomplete).toBe(true)
+  expect(r.messages[0].text).toBe('Only a preview')
+})
+it('retains an unverifiable sender as incomplete instead of quietly hiding its message', async () => {
+  mocks.get.mockResolvedValue({ data: mail('one', 'Unknown sender') })
+  const r = await readMailboxBatch({} as any, window, async () => true)
+  expect(r.messages[0]).toMatchObject({ sender: '(Sender unavailable)', extraction: { incomplete: true } })
+})
+it('uses history for incremental changes and removes deleted or archived mail', async () => {
+  mocks.history.mockResolvedValue({ data: { historyId: '20', history: [{ id: '15', messagesAdded: [{ message: { id: 'new' } }], messagesDeleted: [{ message: { id: 'deleted' } }], labelsRemoved: [{ message: { id: 'archived' }, labelIds: ['INBOX'] }] }] } })
+  mocks.get.mockImplementation(async ({ id }) => ({ data: { ...mail(id), internalDate: '9000', labelIds: id === 'archived' ? [] : ['INBOX'] } }))
+  const r = await readMailboxBatch({} as any, { ...window, mode: 'history', historyId: '10' }, async () => true)
+  expect(r.messages.map(m => m.providerId)).toEqual(['new'])
+  expect(r.removedIds.sort()).toEqual(['archived', 'deleted']); expect(r.historyId).toBe('20')
+  expect(mocks.list).not.toHaveBeenCalled(); expect(mocks.profile).not.toHaveBeenCalled()
+})
+it('drains oversized history records in bounded batches without losing page or checkpoint', async () => {
+  const ids = Array.from({ length: 25 }, (_, i) => `mail-${i}`)
+  mocks.history.mockResolvedValue({ data: { historyId: '20', nextPageToken: 'next', history: [{ id: '15', messagesAdded: ids.map(id => ({ message: { id } })) }] } })
+  const first = await readMailboxBatch({} as any, { ...window, mode: 'history', historyId: '10' }, async () => true)
+  expect(first.messages).toHaveLength(10); expect(first.pendingProviderIds).toHaveLength(15)
+  mocks.get.mockClear()
+  const second = await readMailboxBatch({} as any, { ...window, mode: 'history', historyId: '10', pageToken: 'next', run: { resultHistoryId: '20' }, pendingProviderIds: first.pendingProviderIds }, async () => true)
+  expect(second.messages).toHaveLength(10); expect(second.pendingProviderIds).toHaveLength(5); expect(second.nextPageToken).toBe('next'); expect(second.historyId).toBe('20')
+  expect(mocks.history).toHaveBeenCalledTimes(1); expect(mocks.get).toHaveBeenCalledTimes(10)
+})
+it('expired history requests a disclosed baseline instead of pretending no new mail exists', async () => {
+  mocks.history.mockRejectedValue({ response: { status: 404 } })
+  const e = await readMailboxBatch({} as any, { ...window, mode: 'history', historyId: '10' }, async () => true).catch(e => e)
+  expect(e).toBeInstanceOf(MailboxResync); expect(e.history).toBe(true)
+})
+it('repeated or explicitly expired page cursors request deduplicated recovery', async () => {
+  mocks.list.mockResolvedValue({ data: { messages: [], nextPageToken: 'same' } })
+  await expect(readMailboxBatch({} as any, { ...window, baselineHistoryId: '10', pageToken: 'same' }, async () => true)).rejects.toBeInstanceOf(MailboxResync)
+  mocks.list.mockRejectedValue({ response: { status: 400, data: { error: { message: 'Invalid pageToken' } } } })
+  await expect(readMailboxBatch({} as any, { ...window, baselineHistoryId: '10', pageToken: 'old' }, async () => true)).rejects.toBeInstanceOf(MailboxResync)
+})
+it('refuses malformed or unbounded provider pages', async () => {
+  mocks.list.mockResolvedValue({ data: { messages: Array.from({ length: 11 }, (_, i) => ({ id: String(i) })) } })
+  await expect(readMailboxBatch({} as any, window, async () => true)).rejects.toThrow('exceeded')
+  mocks.list.mockResolvedValue({ data: { messages: [{ id: 'bad\nidentifier' }] } })
+  await expect(readMailboxBatch({} as any, window, async () => true)).rejects.toThrow('invalid message')
+  mocks.history.mockResolvedValue({ data: { historyId: '20', history: [{ messages: Array.from({ length: 201 }, (_, i) => ({ id: String(i) })) }] } })
+  await expect(readMailboxBatch({} as any, { ...window, mode: 'history', historyId: '10' }, async () => true)).rejects.toBeInstanceOf(MailboxResync)
+})
+it('proves the provider token account matches the connected adult mailbox before reading', async () => {
+  mocks.profile.mockResolvedValue({ data: { historyId: '10', emailAddress: 'other@example.test' } })
+  await expect(readMailboxBatch({} as any, { ...window, accountEmail: 'owner@example.test' }, async () => true)).rejects.toThrow('does not match')
+  expect(mocks.list).not.toHaveBeenCalled(); expect(mocks.get).not.toHaveBeenCalled()
+  mocks.profile.mockResolvedValue({ data: { historyId: '10', emailAddress: 'OWNER@example.test' } })
+  const r = await readMailboxBatch({} as any, { ...window, accountEmail: 'owner@example.test' }, async () => true)
+  expect(r.messages).toHaveLength(1); expect(mocks.profile).toHaveBeenCalledTimes(2)
+})
+it('honors reserved read capacity while retaining all unprocessed message IDs', async () => {
+  mocks.list.mockResolvedValue({ data: { messages: Array.from({ length: 10 }, (_, i) => ({ id: `id-${i}` })), nextPageToken: 'next' } })
+  const r = await readMailboxBatch({} as any, { ...window, maxReads: 3 }, async () => true)
+  expect(r.messages).toHaveLength(3); expect(r.processed).toBe(3); expect(r.pendingProviderIds).toHaveLength(7); expect(r.nextPageToken).toBe('next')
+  expect(mocks.get).toHaveBeenCalledTimes(3)
+})

@@ -1,0 +1,34 @@
+.dm-gmail-connection { padding: 16px; background: var(--dm-surface); border: 1px solid var(--dm-line); border-radius: 18px; margin-bottom: 12px; }
+.dm-gmail-row { display: flex; align-items: center; gap: 12px; }
+.dm-gmail-row > svg { flex-shrink: 0; }
+.dm-gmail-row > div { flex: 1; min-width: 0; }
+.dm-gmail-row h3 { margin: 0; font-size: 16px; line-height: 1.4; }
+.dm-gmail-row p { margin: 3px 0 0; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.dm-gmail-row button { min-height: 44px; padding: 8px 12px; font-size: 14px; }
+.dm-gmail-consent, .dm-gmail-disconnect, .dm-gmail-more { margin-top: 16px; }
+.dm-gmail-connection p, .dm-gmail-consent .dm-check { font-size: 14px; line-height: 1.5; }
+.dm-gmail-more summary { font-size: 13px; color: var(--dm-muted); }
+.dm-mail-private { display: flex; align-items: center; gap: 6px; color: var(--dm-muted); font-size: 12px !important; line-height: 1.4; margin-bottom: 10px; }
+.dm-mail-answer, .dm-mail-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.dm-mail-coverage { color: var(--dm-muted); font-size: 12px !important; line-height: 1.5; margin-top: 12px; }
+.dm-mail-issue { font-size: 14px; line-height: 1.5; padding-left: 12px; border-left: 2px solid var(--dm-line); margin: 14px 0; }
+.dm-mail-sources, .dm-mail-check-details { margin-top: 14px; }
+.dm-mail-sources summary, .dm-mail-check-details summary { font-size: 14px; }
+.dm-mail-check-details p { font-size: 13px; line-height: 1.5; color: var(--dm-muted); }
+.dm-mail-source-row { display: flex; flex-direction: column; width: 100%; text-align: left; gap: 4px; background: none; border: 0; border-top: 1px solid var(--dm-line); border-radius: 0; padding: 13px 0; margin-top: 8px; }
+.dm-mail-source-row strong { font-size: 14px; line-height: 1.4; font-weight: 500; overflow-wrap: anywhere; }
+.dm-mail-source-row span { font-size: 12px; line-height: 1.4; color: var(--dm-muted); overflow-wrap: anywhere; }
+.dm-mail-sheet > h3, .dm-mail-draft h3, .dm-mail-share h3 { font-size: 17px; line-height: 1.4; margin: 16px 0 8px; }
+.dm-mail-sheet p, .dm-mail-sheet summary { font-size: 14px; line-height: 1.5; }
+.dm-mail-sheet label { font-size: 13px; line-height: 1.5; margin-top: 14px; }
+.dm-mail-sheet input, .dm-mail-sheet textarea { font-size: 16px; line-height: 1.45; }
+.dm-mail-source, .dm-mail-compose, .dm-mail-draft, .dm-mail-share { margin: 18px 0; border-top: 1px solid var(--dm-line); padding-top: 16px; }
+.dm-mail-sheet button { font-size: 14px; min-height: 44px; }
+.dm-mail-sheet form > button, .dm-mail-sheet details > button { margin-top: 12px; }
+.dm-mail-sheet .dm-actions { flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.dm-mail-source-actions { padding-top: 8px; }
+.dm-mailbox-fixture-banner { position: relative; z-index: 20; margin: 0; background: #ffe5b1; color: #302719; text-align: center; font-size: 12px; line-height: 1.4; padding: 8px 12px; }
+
+.dm-private-followups { margin-top: 12px; }
+.dm-mail-proposal-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+.dm-mail-sheet blockquote { font-size: var(--dm-type-supporting, 15px); line-height: 1.5; margin: 14px 0; padding-left: 12px; border-left: 2px solid var(--dm-line); overflow-wrap: anywhere; }

@@ -1,0 +1,25 @@
+import { z } from 'zod'
+import { sourceHash } from './daymark.js'
+const instant = z.iso.datetime({ offset: true }).transform(value => new Date(value).toISOString())
+const timezone = z.string().min(1).max(100).refine(value => { try { new Intl.DateTimeFormat('en', { timeZone: value }); return !/^[+-]/.test(value) } catch { return false } }, 'Choose a named timezone.')
+export const appointmentInputSchema = z.object({ start: instant, name: z.string().trim().min(1).max(100), email: z.email().max(254).transform(value => value.toLowerCase()), timezone }).strict()
+export type AppointmentInput = z.infer<typeof appointmentInputSchema>
+export const appointmentWindowSchema = z.object({ from: instant, through: instant, name: z.string().trim().min(1).max(100), email: z.email().max(254), timezone }).strict().refine(value => Date.parse(value.through) > Date.parse(value.from) && Date.parse(value.through) - Date.parse(value.from) <= 7 * 86400_000, 'Choose an appointment search of at most seven days.')
+export type AppointmentEvent = { id: number; title: string; duration: number; bookingUrl: string; location: string; hash: string }
+export type AppointmentRecord = { _id: string; version: number; status: 'review' | 'queued' | 'dispatching' | 'uncertain' | 'confirmed' | 'pending' | 'failed' | 'cancelled'; input: AppointmentInput; event: AppointmentEvent; slots: string[]; checkedAt: number; expiresAt: number; providerUid?: string; verifiedAt?: number; issue?: string }
+export function appointmentHash(input: AppointmentInput, eventHash: string) { return sourceHash(JSON.stringify([appointmentInputSchema.parse(input), eventHash])) }
+export function appointmentEvent(raw: unknown, expectedId: number): AppointmentEvent {
+  const event = z.object({ id: z.number().int().positive(), title: z.string().min(1).max(200), lengthInMinutes: z.number().int().min(5).max(480), price: z.number(), bookingUrl: z.url(), locations: z.array(z.object({ type: z.string(), address: z.string().optional() })).min(1).max(1), recurrence: z.unknown().optional(), recurringEvent: z.unknown().optional(), bookingRequiresAuthentication: z.boolean().optional(), requiresBookerEmailVerification: z.boolean().optional(), seatsPerTimeSlot: z.number().nullable().optional(), bookingFields: z.array(z.object({ type: z.string(), slug: z.string().optional(), required: z.boolean().optional() })).optional() }).parse(raw)
+  const url = new URL(event.bookingUrl), location = event.locations[0]
+  if (event.id !== expectedId || event.price !== 0 || url.protocol !== 'https:' || url.hostname !== 'cal.com' || url.username || url.password || event.bookingRequiresAuthentication || event.requiresBookerEmailVerification || event.seatsPerTimeSlot || event.recurringEvent || event.recurrence && !(typeof event.recurrence === 'object' && (event.recurrence as { disabled?: boolean }).disabled === true) || event.bookingFields?.some(field => field.required && !['name', 'email'].includes(field.slug ?? field.type)) || !['address', 'integrations:daily', 'integrations:google:meet', 'integrations:zoom'].includes(location.type)) throw new Error('This event requires parent takeover. Only free, ordinary appointments without extra verification or custom required fields are supported.')
+  const reviewed = { id: event.id, title: event.title, duration: event.lengthInMinutes, bookingUrl: url.toString(), location: location.type === 'address' ? location.address ?? '' : location.type }
+  if (!reviewed.location) throw new Error('Review a supported appointment location.')
+  return { ...reviewed, hash: sourceHash(JSON.stringify(reviewed)) }
+}
+export function verifyAppointment(raw: unknown, input: AppointmentInput, event: AppointmentEvent, operationKey: string, approvedHash: string) {
+  const booking = z.object({ uid: z.string().regex(/^[A-Za-z0-9_-]{1,100}$/), eventTypeId: z.number(), start: instant, end: instant, location: z.string().optional(), status: z.enum(['accepted', 'pending']), attendees: z.array(z.object({ name: z.string(), email: z.email(), timeZone: z.string() })).length(1), guests: z.array(z.string()).optional(), metadata: z.object({ solaOperation: z.string(), solaHash: z.string() }) }).parse(raw)
+  const attendee = booking.attendees[0]
+  if (booking.eventTypeId !== event.id || booking.start !== input.start || Date.parse(booking.end) !== Date.parse(input.start) + event.duration * 60000 || attendee.name !== input.name || attendee.email.toLowerCase() !== input.email || attendee.timeZone !== input.timezone || booking.guests?.length || booking.metadata.solaOperation !== operationKey || booking.metadata.solaHash !== approvedHash || approvedHash !== appointmentHash(input, event.hash)) throw new Error('The provider booking does not match the approved appointment.')
+  if (!event.location.startsWith('integrations:') && booking.location !== event.location) throw new Error('The provider location differs from the approved appointment.')
+  return { uid: booking.uid, status: booking.status === 'accepted' ? 'confirmed' as const : 'pending' as const }
+}

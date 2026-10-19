@@ -1,0 +1,48 @@
+import { expect, test } from '@playwright/test'
+
+for (const colorScheme of ['light', 'dark'] as const) for (const width of [390, 1100]) test(`settings stays reachable while chat scrolls at ${width}px in ${colorScheme}`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 844 }); await page.emulateMedia({ colorScheme })
+  await page.goto('/e2e.html?scenario=mailbox-long-chat')
+  await expect(page.locator('.dm-mail-answer').last()).toBeAttached()
+  const settings = page.getByRole('button', { name: 'Household settings', exact: true }), header = page.locator('.dm-header')
+  await page.evaluate(() => window.scrollTo(0, 300))
+  await expect.poll(() => header.evaluate(el => Math.abs(el.getBoundingClientRect().top))).toBeLessThan(1)
+  const before = (await settings.boundingBox())!
+  expect((await header.boundingBox())!.height).toBeLessThan(120)
+  await page.evaluate(() => window.scrollTo(0, 850))
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(600)
+  const after = (await settings.boundingBox())!
+  expect(Math.abs(before.y - after.y)).toBeLessThan(1)
+  expect(after.y).toBeGreaterThanOrEqual(0)
+  expect(await settings.evaluate(button => {
+    const r = button.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+    return !!hit && button.contains(hit)
+  })).toBe(true)
+  const message = page.locator('.dm-thread').nth(2)
+  await message.evaluate(el => el.scrollIntoView({ block: 'start' }))
+  expect((await message.boundingBox())!.y).toBeGreaterThanOrEqual((await header.boundingBox())!.height)
+  const readingPosition = await page.evaluate(() => window.scrollY)
+  await settings.click()
+  const sheet = page.getByRole('dialog', { name: 'Household', exact: true })
+  await expect(sheet).toBeVisible(); await sheet.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(settings).toBeFocused()
+  expect(Math.abs(await page.evaluate(() => window.scrollY) - readingPosition)).toBeLessThan(2)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  if (width === 390) await page.screenshot({ path: `test-results/pinned-settings-${colorScheme}.png`, animations: 'disabled' })
+})
+
+test('pinned settings remains usable with doubled text on a small screen', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/e2e.html?scenario=mailbox-long-chat')
+  await expect(page.locator('.dm-mail-answer').last()).toBeAttached()
+  await page.addStyleTag({ content: ':root { font-size: 212.5% !important; }' })
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe('34px')
+  await page.evaluate(() => window.scrollTo(0, 900))
+  const settings = page.getByRole('button', { name: 'Household settings', exact: true })
+  await expect(settings).toBeInViewport()
+  await settings.click()
+  const sheet = page.getByRole('dialog', { name: 'Household', exact: true })
+  await expect(sheet).toBeVisible(); await sheet.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(settings).toBeFocused()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})

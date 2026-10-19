@@ -1,0 +1,150 @@
+import { beforeEach, afterEach, expect, it, vi } from 'vitest'
+import { convexTest } from 'convex-test'
+import schema from './schema'
+import { api, internal } from './_generated/api'
+const modules = import.meta.glob('./**/*.ts')
+beforeEach(() => vi.useFakeTimers())
+afterEach(() => { vi.clearAllTimers(); vi.useRealTimers() })
+async function fixture() {
+  const t = convexTest(schema, modules), alice = t.withIdentity({ subject: 'alice', tokenIdentifier: 'test|alice' }), bob = t.withIdentity({ subject: 'bob', tokenIdentifier: 'test|bob' })
+  const householdId = await alice.mutation(api.households.save, { timezone: 'UTC', children: [{ id: 'maya', name: 'Maya' }] })
+  await bob.mutation(api.households.save, { timezone: 'UTC', children: [] })
+  const ids = await t.run(async ctx => {
+    const storageId = await ctx.storage.store(new Blob(['synthetic validated document'], { type: 'image/png' }))
+    const stored = (await ctx.db.system.get(storageId))!
+    const fileId = await ctx.db.insert('attachments', { householdId, subject: 'test|alice', storageId, name: 'Synthetic.png', size: 28, mediaType: 'image/png', hash: stored.sha256, status: 'ready', expiresAt: Date.now() + 86400000 })
+    const sourceId = await ctx.db.insert('sources', { householdId, text: 'Synthetic notice', attachmentIds: [fileId], hash: 'notice', revision: 1, expiresAt: Date.now() + 86400000 })
+    await ctx.db.patch(fileId, { sourceId })
+    const jobId = await ctx.db.insert('jobs', { householdId, sourceId, createdBy: 'test|alice', preparing: false, cancelled: false, clarification: '' })
+    const actionId = await ctx.db.insert('actions', { householdId, jobId, revision: 1, sourceRevision: 1, status: 'review', payload: { kind: 'email', childId: 'maya', to: 'teacher@example.test', subject: 'Maya trip RSVP', body: 'Maya will attend.', requirement: '', evidence: {} } })
+    return { storageId, sourceId, fileId, jobId, actionId }
+  })
+  return { t, alice, bob, householdId, ...ids }
+}
+it('saves canonical artifact references once without approval or execution and rejects foreign-household access', async () => {
+  const f = await fixture(), id = await f.alice.mutation(api.library.saveArtifact, { actionId: f.actionId })
+  expect(await f.alice.mutation(api.library.saveArtifact, { actionId: f.actionId })).toBe(id)
+  const library = await f.alice.query(api.library.list, {})
+  expect(library).toHaveLength(1); expect(library[0]).toMatchObject({ kind: 'artifact', actionId: f.actionId, title: 'Maya trip RSVP' }); expect(library[0]).not.toHaveProperty('storageId')
+  expect(await f.bob.query(api.library.list, {})).toEqual([])
+  await expect(f.bob.mutation(api.library.saveArtifact, { actionId: f.actionId })).rejects.toThrow('unavailable')
+  await expect(f.bob.mutation(api.library.update, { id, version: 1, changes: { title: 'Wrong household', collection: '', pinned: false } })).rejects.toThrow('unavailable')
+  await expect(f.bob.mutation(api.library.remove, { id, version: 1 })).rejects.toThrow('unavailable')
+  await f.t.run(ctx => ctx.db.patch(f.actionId, { revision: 2, payload: { ...library[0], kind: 'email', subject: 'Canonical correction' } }))
+  expect((await f.alice.query(api.library.list, {}))[0].actionId).toBe(f.actionId)
+  const state = await f.t.run(async ctx => ({ approvals: await ctx.db.query('approvals').collect(), receipts: await ctx.db.query('receipts').collect(), attempts: await ctx.db.query('attempts').collect() }))
+  expect(state).toEqual({ approvals: [], receipts: [], attempts: [] })
+})
+it('requires the current Library version and preserves the original deliverable when its bookmark is removed', async () => {
+  const f = await fixture(), id = await f.alice.mutation(api.library.saveArtifact, { actionId: f.actionId })
+  const changes = { title: 'School reply', collection: 'School', childId: 'maya', pinned: true }
+  await f.alice.mutation(api.library.update, { id, version: 1, changes })
+  await expect(f.alice.mutation(api.library.update, { id, version: 1, changes })).rejects.toThrow('changed')
+  await expect(f.alice.mutation(api.library.remove, { id, version: 1 })).rejects.toThrow('changed')
+  await expect(f.alice.mutation(api.library.update, { id, version: 2, changes: { ...changes, childId: 'unknown-child' } })).rejects.toThrow('Choose a child')
+  await f.alice.mutation(api.library.remove, { id, version: 2 })
+  expect(await f.alice.query(api.library.list, {})).toEqual([])
+  expect((await f.t.run(ctx => ctx.db.get(f.actionId)))?.status).toBe('review')
+})
+it('copies kept files privately so source expiry cannot remove them, then deletes only the saved copy', async () => {
+  const f = await fixture(), [id] = await f.alice.action(api.library.saveFiles, { ids: [f.fileId], jobId: f.jobId, collection: 'School', childId: 'maya' })
+  const library = (await f.alice.query(api.library.list, {}))[0]
+  expect(id).toBe(library.id)
+  const privateFile = await f.alice.query(internal.library.readable, { id: library.id as any })
+  expect(privateFile?.storageId).not.toBe(f.storageId)
+  await expect(f.bob.query(internal.library.readable, { id: library.id as any })).rejects.toThrow('unavailable')
+  await expect(f.bob.action(api.library.saveFiles, { ids: [f.fileId], collection: '' })).rejects.toThrow('unavailable')
+  expect(await f.alice.action(api.library.saveFiles, { ids: [f.fileId], jobId: f.jobId, collection: 'Different' })).toEqual([id])
+  expect(await f.alice.query(api.library.list, {})).toHaveLength(1)
+  await f.t.run(async ctx => { await ctx.db.patch(f.fileId, { expiresAt: Date.now() - 1 }); await ctx.db.patch(f.sourceId, { expiresAt: Date.now() - 1 }) })
+  await f.t.mutation(internal.privacy.expireSources, {})
+  expect(await f.t.run(ctx => ctx.storage.get(f.storageId))).toBeNull()
+  expect(await f.t.run(async ctx => (await ctx.storage.get(privateFile!.storageId))?.text())).toBe('synthetic validated document')
+  await f.alice.mutation(api.library.remove, { id: library.id as any, version: 1 })
+  expect(await f.t.run(ctx => ctx.storage.get(privateFile!.storageId))).toBeNull()
+})
+it('keeps personalization per adult even in the same household and validates display names', async () => {
+  const f = await fixture()
+  await f.t.run(async ctx => { const membership = await ctx.db.query('memberships').withIndex('by_subject', q => q.eq('subject', 'test|bob')).unique(); await ctx.db.patch(membership!._id, { householdId: f.householdId }) })
+  await f.alice.mutation(api.library.savePreferences, { parentName: '  Taylor  ', assistantName: '  Juniper  ' })
+  expect(await f.alice.query(api.library.preferences, {})).toEqual({ parentName: 'Taylor', assistantName: 'Juniper', avatar: 'robin' })
+  expect(await f.bob.query(api.library.preferences, {})).toEqual({ parentName: '', assistantName: 'Sola', avatar: 'robin' })
+  await expect(f.alice.mutation(api.library.savePreferences, { parentName: 'Taylor', assistantName: ' ' })).rejects.toThrow()
+})
+it('defaults the legacy generic identity to Sola and preserves custom identity/avatar on older saves', async () => {
+  const f = await fixture()
+  await f.t.run(ctx => ctx.db.insert('personalPreferences', { householdId: f.householdId, subject: 'test|alice', parentName: 'Taylor', assistantName: 'Daymark' }))
+  expect(await f.alice.query(api.library.preferences, {})).toEqual({ parentName: 'Taylor', assistantName: 'Sola', avatar: 'robin' })
+  await f.alice.mutation(api.library.savePreferences, { parentName: 'Taylor', assistantName: 'Skye', avatar: 'initial' })
+  await f.alice.mutation(api.library.savePreferences, { parentName: 'Alex', assistantName: 'Skye' })
+  expect(await f.alice.query(api.library.preferences, {})).toEqual({ parentName: 'Alex', assistantName: 'Skye', avatar: 'initial' })
+})
+it('account deletion blocks Library immediately and cleans both source and permanent storage plus preferences', async () => {
+  const f = await fixture(), [id] = await f.alice.action(api.library.saveFiles, { ids: [f.fileId], jobId: f.jobId, collection: '' })
+  const saved = await f.alice.query(internal.library.readable, { id: id as any })
+  await f.alice.mutation(api.library.savePreferences, { parentName: 'Taylor', assistantName: 'Juniper' })
+  await f.alice.mutation(api.privacy.deleteAccount, { confirmation: 'DELETE' })
+  await expect(f.alice.query(api.library.list, {})).rejects.toThrow('unavailable')
+  await expect(f.alice.query(internal.library.readable, { id: id as any })).rejects.toThrow('unavailable')
+  const job = (await f.t.run(ctx => ctx.db.query('deletionJobs').collect()))[0]
+  await f.t.mutation(internal.privacy.eraseHousehold, { householdId: f.householdId, jobId: job._id })
+  const state = await f.t.run(async ctx => ({ library: await ctx.db.query('library').collect(), preferences: await ctx.db.query('personalPreferences').collect(), original: await ctx.storage.get(f.storageId), saved: await ctx.storage.get(saved!.storageId) }))
+  expect(state).toEqual({ library: [], preferences: [], original: null, saved: null })
+})
+it('refuses expired, unvalidated, and unsupported file types before creating any permanent copy', async () => {
+  const f = await fixture()
+  await f.t.run(ctx => ctx.db.patch(f.fileId, { status: 'checking' }))
+  await expect(f.alice.action(api.library.saveFiles, { ids: [f.fileId], collection: '' })).rejects.toThrow('finish checking')
+  await f.t.run(ctx => ctx.db.patch(f.fileId, { status: 'ready', mediaType: 'image/svg+xml' }))
+  await expect(f.alice.action(api.library.saveFiles, { ids: [f.fileId], collection: '' })).rejects.toThrow('JPG')
+  await f.t.run(ctx => ctx.db.patch(f.fileId, { mediaType: 'image/png', expiresAt: Date.now() - 1 }))
+  await expect(f.alice.action(api.library.saveFiles, { ids: [f.fileId], collection: '' })).rejects.toThrow('finish checking')
+  expect(await f.alice.query(api.library.list, {})).toEqual([])
+})
+
+it('sweeps only aged unreferenced copies after rollout, preserving active and historical storage', async () => {
+  const f = await fixture()
+  const oldOrphan = await f.t.run(ctx => ctx.storage.store(new Blob(['preexisting unclassified storage'])))
+  vi.setSystemTime(Date.now() + 1000)
+  const [id] = await f.alice.action(api.library.saveFiles, { ids: [f.fileId], jobId: f.jobId, collection: '' })
+  const kept = await f.alice.query(internal.library.readable, { id: id as any })
+  const interrupted = await f.t.run(ctx => ctx.storage.store(new Blob(['copy interrupted before metadata'])))
+  vi.setSystemTime(Date.now() + 25 * 3600000)
+  const active = await f.t.run(ctx => ctx.storage.store(new Blob(['current upload'])))
+  await f.t.mutation(internal.privacy.cleanupStorage, {})
+  const present = await f.t.run(async ctx => ({ historical: !!await ctx.storage.get(oldOrphan), original: !!await ctx.storage.get(f.storageId), kept: !!await ctx.storage.get(kept!.storageId), interrupted: !!await ctx.storage.get(interrupted), active: !!await ctx.storage.get(active) }))
+  expect(present).toEqual({ historical: true, original: true, kept: true, interrupted: false, active: true })
+})
+it('cleans a partial batch if a later original file disappears before the copy finishes', async () => {
+  const f = await fixture()
+  const missing = await f.t.run(async ctx => {
+    const storageId = await ctx.storage.store(new Blob(['second source'], { type: 'image/png' })), metadata = (await ctx.db.system.get(storageId))!
+    const id = await ctx.db.insert('attachments', { householdId: f.householdId, subject: 'test|alice', storageId, name: 'Second.png', size: metadata.size, mediaType: 'image/png', hash: metadata.sha256, status: 'ready', expiresAt: Date.now() + 86400000 })
+    await ctx.storage.delete(storageId)
+    return id
+  })
+  const before = await f.t.run(ctx => ctx.db.system.query('_storage').collect())
+  await expect(f.alice.action(api.library.saveFiles, { ids: [f.fileId, missing], collection: '' })).rejects.toThrow('no longer available')
+  expect(await f.alice.query(api.library.list, {})).toEqual([])
+  expect((await f.t.run(ctx => ctx.db.system.query('_storage').collect())).map(f => f._id)).toEqual(before.map(f => f._id))
+})
+it('rechecks household deletion at copy commit and eventually removes an interrupted uncommitted blob', async () => {
+  const f = await fixture()
+  const context = await f.alice.mutation(internal.library.copyContext, { ids: [f.fileId], jobId: f.jobId })
+  const copy = await f.t.run(async ctx => ctx.storage.store((await ctx.storage.get(f.storageId))!))
+  await f.alice.mutation(api.privacy.deleteAccount, { confirmation: 'DELETE' })
+  await expect(f.alice.mutation(internal.library.copied, { files: [{ id: f.fileId, storageId: copy, hash: context[0].hash }], jobId: f.jobId, collection: '' })).rejects.toThrow('unavailable')
+  expect(await f.t.run(ctx => ctx.db.query('library').collect())).toEqual([])
+  vi.setSystemTime(Date.now() + 25 * 3600000)
+  await f.t.mutation(internal.privacy.cleanupStorage, {})
+  expect(await f.t.run(ctx => ctx.storage.get(copy))).toBeNull()
+})
+
+it('cleanup after an ambiguous commit response cannot delete a referenced Library copy or source', async () => {
+  const f = await fixture(), [id] = await f.alice.action(api.library.saveFiles, { ids: [f.fileId], jobId: f.jobId, collection: '' })
+  const kept = await f.alice.query(internal.library.readable, { id: id as any })
+  const unused = await f.t.run(ctx => ctx.storage.store(new Blob(['uncommitted duplicate'])))
+  await f.t.mutation(internal.library.discardCopies, { ids: [kept!.storageId, f.storageId, unused] })
+  const files = await f.t.run(async ctx => ({ kept: !!await ctx.storage.get(kept!.storageId), original: !!await ctx.storage.get(f.storageId), unused: !!await ctx.storage.get(unused) }))
+  expect(files).toEqual({ kept: true, original: true, unused: false })
+})

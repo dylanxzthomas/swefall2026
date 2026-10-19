@@ -1,0 +1,137 @@
+appId: com.dylanxzthomas.wren
+---
+# Run only on the disposable simulator created by scripts/native-check.mjs.
+# Each appearance already has a fresh install; do not clear/reinstall it again
+# through Maestro (that redundant path stalled after a SpringBoard crash).
+- launchApp
+# The first WKWebView cold load on a newly booted phone can outlast Maestro's
+# default assertion wait. Wait for the real workspace, not an arbitrary sleep.
+- extendedWaitUntil:
+    visible: "On this device · no sign-in needed"
+    timeout: 60000
+- assertVisible:
+    text: "What can I handle?"
+    enabled: true
+- assertVisible: "Household settings"
+- assertVisible: "History"
+- takeScreenshot: "native-artifacts/phone-before-keyboard"
+- tapOn:
+    text: "What can I handle?"
+    # Captured iPhone 17 Pro textarea:266×46; exclude duplicate clipped labels.
+    width: 266
+    height: 46
+    tolerance: 20
+- inputText: "Synthetic unsent school notice"
+- assertVisible: "Synthetic unsent school notice"
+- assertVisible:
+    id: "delete"
+- takeScreenshot: "native-artifacts/phone-keyboard-before-dismiss"
+# Use the captured native accessory Done (40×38), not the web sheet's Done.
+# Maestro's screen-center hideKeyboard swipes intersect the lifted navigation.
+- tapOn:
+    text: "Done"
+    width: 40
+    height: 38
+    tolerance: 5
+- assertNotVisible:
+    id: "delete"
+- takeScreenshot: "native-artifacts/phone-keyboard-after-dismiss"
+- assertVisible: "Household settings"
+- assertVisible: "History"
+- assertVisible: "Assistant"
+- assertVisible: "Synthetic unsent school notice"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "On this device · no sign-in needed"
+    timeout: 60000
+- assertVisible: "Synthetic unsent school notice"
+- extendedWaitUntil:
+    visible: "Plan"
+    timeout: 15000
+- tapOn: "Plan"
+- assertVisible: "Family plan"
+- takeScreenshot: "native-artifacts/phone-plan"
+- tapOn: "Assistant"
+- assertVisible: "Synthetic unsent school notice"
+# Use the normal no-account app, not the connected browser fixture harness.
+- tapOn: "Household settings"
+- scrollUntilVisible:
+    element: "Add a child"
+    direction: DOWN
+- tapOn: "Add a child"
+- inputText: "Maya"
+- tapOn:
+    text: "Done"
+    width: 40
+    height: 38
+    tolerance: 5
+- assertNotVisible:
+    id: "delete"
+- scrollUntilVisible:
+    element: "Save household"
+    direction: DOWN
+- tapOn: "Save household"
+- tapOn:
+    text: "What can I handle?"
+    width: 266
+    height: 46
+    tolerance: 20
+    # Tap beyond the old draft's text so backspace starts at its end.
+    point: "98%,50%"
+- longPressOn:
+    text: "What can I handle?"
+    width: 266
+    height: 46
+    tolerance: 20
+    point: "98%,50%"
+- tapOn: "Select All"
+- eraseText
+- inputText: "Event: Maya museum trip\nDate: 2026-10-08\nTime: 8:30 AM to 2:30 PM\nLocation: North gate"
+- assertVisible: "Event: Maya museum trip\nDate: 2026-10-08\nTime: 8:30 AM to 2:30 PM\nLocation: North gate"
+- tapOn:
+    text: "Done"
+    width: 40
+    height: 38
+    tolerance: 5
+- assertNotVisible:
+    id: "delete"
+- tapOn: "Send"
+- assertVisible: "Review request"
+- assertVisible: "Maya museum trip"
+- assertVisible:
+    text: "Save to device plan"
+    enabled: true
+- takeScreenshot: "native-artifacts/phone-review"
+- tapOn: "Edit details"
+- scrollUntilVisible:
+    element: "Location"
+    direction: DOWN
+- tapOn: "Location"
+- eraseText
+- inputText: "South gate"
+- assertVisible: "South gate"
+- tapOn:
+    text: "Done"
+    width: 40
+    height: 38
+    tolerance: 5
+- assertNotVisible:
+    id: "delete"
+- tapOn: "Close"
+- tapOn: ".*Maya museum trip.*South gate.*"
+- tapOn: "Save to device plan"
+- assertVisible: "Saved to your device plan"
+- tapOn: "Close"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "On this device · no sign-in needed"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "Plan"
+    timeout: 15000
+- tapOn: "Plan"
+- assertVisible: ".*Maya museum trip.*"
+- assertVisible: ".*South gate.*"
+- takeScreenshot: "native-artifacts/phone-saved-plan"

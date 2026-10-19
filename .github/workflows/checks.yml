@@ -1,0 +1,56 @@
+name: Daymark checks
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  browser-and-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:ios-tools
+      - run: node --test --test-concurrency=1 scripts/hosted-source.test.mjs scripts/release-metadata.test.mjs scripts/dev-server.test.mjs tests/integration/voiceLifecycle.test.mjs
+      - run: npm run test:daymark
+      - run: npm run test:household && npm run test:mobile
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-verification
+          path: |
+            playwright-report
+            test-results
+  native-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+      - name: Compile app and Share extension for simulator
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug -derivedDataPath native-artifacts build
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Maestro CLI from the official Homebrew tap
+        run: |
+          brew tap mobile-dev-inc/tap
+          brew install mobile-dev-inc/tap/maestro
+      - name: Test native draft, review, correction, and saved plan on a disposable simulator
+        run: npm run test:native
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-build
+          path: native-artifacts

@@ -1,0 +1,11 @@
+appId: com.dylanxzthomas.wren.nativeacceptance
+---
+# The runner already launched this test-only host on its newly created simulator.
+- tapOn: "Request Calendar access"
+- extendedWaitUntil:
+    visible: "Allow Full Access"
+    timeout: 15000
+- tapOn: "Allow Full Access"
+- extendedWaitUntil:
+    visible: "PASS calendar-permission"
+    timeout: 15000

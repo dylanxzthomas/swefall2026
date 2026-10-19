@@ -1,0 +1,5 @@
+.dm-gmail-source { display: grid; gap: 10px; }
+.dm-gmail-source p { margin: 0; overflow-wrap: anywhere; }
+.dm-gmail-source details { border: 0; padding: 0; }
+.dm-gmail-source summary { color: var(--dm-muted); font-size: var(--dm-caption); font-weight: 400; }
+.dm-gmail-source details p { margin-top: 10px; }

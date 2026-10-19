@@ -1,0 +1,25 @@
+.dm-email-checks { margin-top: 20px; }
+.dm-email-checks .dm-setting-item h3 { font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.dm-email-checks .dm-setting-item p, .dm-email-checks blockquote { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.dm-email-checks blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--dm-line); color: var(--dm-muted); }
+.dm-email-checks button { margin-top: 10px; }
+.dm-email-related { margin-top: 12px; }
+.dm-email-related ul { list-style: none; margin: 10px 0; padding: 0; }
+.dm-email-related li { display: flex; flex-direction: column; gap: 2px; margin: 10px 0; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.dm-email-related time { color: var(--dm-muted); font-size: 12px; }
+.dm-email-task { border-top: 1px solid var(--dm-line); margin-top: 18px; padding-top: 16px; }
+.dm-email-task h4 { margin: 0 0 8px; font-size: 14px; line-height: 1.4; font-weight: 600; }
+.dm-email-task form, .dm-email-task label { min-width: 0; }
+.dm-email-task label { display: grid; gap: 6px; margin-top: 14px; font-size: 13px; line-height: 1.4; }
+.dm-email-task input, .dm-email-task textarea, .dm-email-task select { min-width: 0; width: 100%; box-sizing: border-box; font-size: 16px; line-height: 1.4; }
+.dm-email-task-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.dm-email-task-evidence { margin: 12px 0; }
+.dm-email-task-issue { margin: 12px 0; padding-left: 12px; border-left: 2px solid var(--dm-line); font-size: 14px; line-height: 1.5; }
+.dm-email-task-title { font-weight: 500; }
+.dm-email-task-reviews { margin: 24px 0; padding: 16px; border: 1px solid var(--dm-line); border-radius: 18px; }
+.dm-email-task-reviews > h2 { margin: 0 0 6px; font-size: 17px; line-height: 1.4; }
+.dm-email-task-reviews p, .dm-email-task-reviews blockquote { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.dm-email-task-reviews blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--dm-line); color: var(--dm-muted); }
+.dm-email-task .dm-actions, .dm-email-message-actions { flex-wrap: wrap; gap: 8px; }
+.dm-email-task .dm-actions button, .dm-email-message-actions button { min-height: 44px; font-size: 14px; line-height: 1.4; }
+@media (max-width: 350px) { .dm-email-task-fields { grid-template-columns: minmax(0, 1fr); } }

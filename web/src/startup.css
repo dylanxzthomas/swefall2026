@@ -1,0 +1,14 @@
+:root { color-scheme: light dark; }
+body { margin: 0; background: #f7f7f8; color: #202023; }
+.dm-startup {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #6e6e75;
+}
+@media (prefers-color-scheme: dark) {
+  body { background: #0c0c0e; color: #ededf0; }
+  .dm-startup { color: #a1a1aa; }
+}

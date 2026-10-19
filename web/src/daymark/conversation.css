@@ -1,0 +1,21 @@
+.dm-conversation-message { max-width: 94%; }
+.dm-conversation-bubble { background: var(--dm-surface); border-radius: 20px 20px 20px 5px; padding: 14px 16px; }
+.dm-conversation-bubble > p { margin: 0; white-space: pre-wrap; line-height: 1.55; overflow-wrap: anywhere; }
+.dm-conversation-review { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 9px; padding: 5px 0; border: 0; background: transparent; color: var(--dm-accent); text-align: left; font-weight: 500; }
+.dm-conversation-review span { min-width: 0; }
+.dm-conversation-review:focus-visible, .dm-conversation-work:focus-visible { outline: 2px solid var(--dm-accent); outline-offset: 4px; }
+.dm-thread { scroll-margin-top: calc(var(--dm-header-height, 70px) + 12px); }
+.dm-conversation-work { scroll-margin-top: calc(var(--dm-header-height, 70px) + 12px); scroll-margin-bottom: calc(var(--dm-dock-height, 170px) + 24px); border-radius: 8px; }
+.dm-conversation-work:focus:not(:focus-visible) { outline: none; }
+.dm-conversation-activity { display: flex; gap: 8px; align-items: center; color: var(--dm-muted); font-size: var(--dm-caption); margin-top: 9px !important; }
+.dm-conversation-activity span { height: 6px; width: 6px; flex: 0 0 6px; border-radius: 50%; background: currentColor; animation: dm-activity-pulse 1.8s ease-in-out infinite; }
+.dm-conversation-update { margin-bottom: 0; }
+.dm-conversation-update .dm-conversation-bubble { background: transparent; padding-top: 3px; padding-bottom: 3px; }
+.dm-thread .dm-assistant-work-actions { margin-top: 10px; }
+.dm-thread .dm-assistant-work-actions > div > button { border: 0; background: transparent; text-align: left; color: var(--dm-accent); display: block; padding: 9px 0; min-height: 44px; }
+.dm-thread .dm-assistant-work-actions > div > button strong { display: inline; font-size: var(--dm-label); font-weight: 500; }
+.dm-thread .dm-assistant-work-actions > div > button span { display: none; }
+.dm-composer.dm-composer-voice { grid-template-columns: 44px minmax(0, 1fr) 44px 44px; }
+.dm-conversation-voice { overflow-wrap: anywhere; }
+@keyframes dm-activity-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .dm-conversation-activity span { animation: none; } }

@@ -1,0 +1,63 @@
+.dm-avatar { display: inline-grid; place-items: center; flex: 0 0 var(--avatar-size); width: var(--avatar-size); height: var(--avatar-size); overflow: hidden; border-radius: 50%; background: #e6ded2; color: #665747; vertical-align: middle; }
+.dm-avatar img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.dm-avatar:has(img) { background: transparent; border-radius: 0; overflow: visible; }
+.dm-avatar-initial { font-size: calc(var(--avatar-size) * .43); line-height: 1; font-weight: 500; }
+.dm-identity-personal { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.dm-identity-personal h1 { font-size: var(--dm-title); }
+.dm-identity-personal > p { margin-top: 0; max-width: 24ch; text-wrap: balance; overflow-wrap: anywhere; }
+.dm-header:has(.dm-identity-personal) { align-items: center; }
+.dm-header:has(.dm-identity-personal) > .dm-icon-button { margin-top: 0; }
+.dm-assistant-byline { display: flex; align-items: center; gap: 8px; color: var(--dm-muted); font-size: var(--dm-caption); margin-bottom: 10px; }
+.dm-assistant-message > .dm-assistant-byline { display: flex; margin-bottom: 10px; }
+.dm-personal-profile { display: flex; align-items: center; gap: 16px; }
+.dm-personal-profile > div { min-width: 0; }
+.dm-personal-profile h3 { overflow-wrap: anywhere; margin-bottom: 4px; }
+.dm-personal-profile p { margin-bottom: 0; }
+.dm-avatar-options { border: 0; padding: 0; margin: 20px 0; }
+.dm-avatar-options legend { font-size: var(--dm-label); margin-bottom: 10px; }
+.dm-avatar-options > div { display: flex; gap: 12px; }
+.dm-avatar-options button { display: flex; align-items: center; gap: 10px; flex: 1; font-size: var(--dm-label); background: var(--dm-inset); padding: 10px; min-width: 0; }
+.dm-avatar-options button[aria-pressed=true] { border-color: var(--dm-text); }
+.dm-household-name { margin-top: 0; }
+.dm-scheduled-intro { padding: 20px 0; }
+.dm-scheduled-intro h3 { font-size: var(--dm-title); margin-top: 14px; }
+.dm-scheduled-intro p { font-size: var(--dm-label); color: var(--dm-muted); }
+@media (prefers-color-scheme: dark) { .dm-avatar { background: #302b25; color: #d9c7af; } }
+
+.dm-header .dm-identity.dm-identity-personal { display: grid; grid-template-columns: 38px minmax(0, auto); column-gap: 9px; row-gap: 0; align-items: center; justify-content: center; text-align: left; }
+.dm-header .dm-identity-personal > .dm-avatar { grid-row: 1 / span 2; }
+.dm-header .dm-identity-personal > h1 { grid-column: 2; align-self: end; font-size: var(--dm-body); }
+.dm-header .dm-identity-personal > p { grid-column: 2; align-self: start; text-wrap: pretty; }
+.dm-personal-profile.dm-household-profile { align-items: center; }
+@media (max-height: 740px) { .dm-welcome { margin-top: 42px; } }
+
+.dm-avatar img { transform-origin: 50% 85%; }
+@media (prefers-reduced-motion: no-preference) {
+  .dm-avatar[data-animate=true] img { animation-timing-function: ease-in-out; animation-fill-mode: none; }
+  .dm-avatar[data-animate=true][data-mood=idle] img { animation-name: sola-settle; animation-duration: 1.8s; }
+  .dm-avatar[data-animate=true][data-mood=listening] img { animation-name: sola-listen; animation-duration: 1.6s; }
+  .dm-avatar[data-animate=true][data-mood=working] img { animation-name: sola-think; animation-duration: 1.6s; animation-iteration-count: 2; }
+  .dm-avatar[data-animate=true][data-mood=review] img { animation-name: sola-nod; animation-duration: 1.3s; }
+  .dm-avatar[data-animate=true][data-mood=done] img { animation-name: sola-lift; animation-duration: 1.2s; }
+  .dm-avatar[data-animate=true][data-mood=resting] img { animation-name: sola-breathe; animation-duration: 2.8s; }
+  .dm-avatar[data-paused=true] img { animation-play-state: paused; }
+}
+@keyframes sola-settle { 0%, 100% { transform: none; } 35% { transform: translateY(-2%) scale(1.015, 1.025); } 72% { transform: scale(1.015, .99); } }
+@keyframes sola-listen { 0%, 100% { transform: none; } 38%, 65% { transform: rotate(-4deg) translateY(-2%); } }
+@keyframes sola-think { 0%, 100% { transform: none; } 25% { transform: rotate(-2deg) translateY(-1%); } 75% { transform: rotate(2deg) translateY(-1%); } }
+@keyframes sola-nod { 0%, 100% { transform: none; } 35% { transform: translateY(2%) scale(1.025, .96); } 65% { transform: translateY(-1%) scale(.99, 1.015); } }
+@keyframes sola-lift { 0%, 100% { transform: none; } 20% { transform: scale(1.04, .94); } 47% { transform: translateY(-7%) scale(.98, 1.035); } 74% { transform: scale(1.025, .98); } }
+@keyframes sola-breathe { 0%, 100% { transform: none; } 50% { transform: scale(1.025, 1.035); } }
+
+.dm-avatar-preview-details { border-top: 1px solid var(--dm-line); margin-top: 20px; scroll-margin-top: 76px; }
+.dm-avatar-preview-details > summary { color: var(--dm-muted); font-size: var(--dm-label); }
+.dm-avatar-preview { text-align: center; padding-bottom: 4px; }
+.dm-avatar-stage { min-height: 144px; display: grid; place-items: center; }
+.dm-avatar-preview .dm-avatar-preview-caption { display: grid; gap: 6px; margin: 4px auto 14px; max-width: 28ch; min-height: 66px; }
+.dm-avatar-preview-caption strong { font-size: var(--dm-control); font-weight: 500; }
+.dm-avatar-preview-caption span { font-size: var(--dm-label); line-height: 1.45; color: var(--dm-muted); }
+.dm-avatar-preview .dm-avatar-replay { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: var(--dm-label); min-height: 44px; background: transparent; }
+.dm-avatar-expression-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 20px; }
+.dm-avatar-expression-grid button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 10px 4px; min-height: 88px; background: var(--dm-inset); font-size: var(--dm-caption); line-height: 1.25; }
+.dm-avatar-expression-grid button[aria-pressed=true] { border-color: var(--dm-text); }
+.dm-avatar-preview .dm-avatar-motion-note { margin: 14px auto 0; font-size: var(--dm-caption); line-height: 1.45; color: var(--dm-muted); max-width: 32ch; }

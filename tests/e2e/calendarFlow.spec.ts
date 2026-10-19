@@ -1,0 +1,60 @@
+import { test, expect } from '@playwright/test'
+test.use({ viewport: { width: 390, height: 844 } })
+const start = async (page: import('@playwright/test').Page, scenario: string) => {
+  await page.goto(`/e2e.html?scenario=assistant-builds-calendar-${scenario}`)
+  await expect(page.getByText('Synthetic assistant builds preview', { exact: false })).toBeVisible()
+}
+const actions = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(sessionStorage.getItem('assistant-builds-actions') ?? '[]') as { action: string; data: any }[])
+for (const [scenario, expected] of [['current', 'Last verified details · current event shown above'], ['changed', 'Calendar changed since this save · current event shown above'], ['missing', 'Not in the latest checked window · previously verified details'], ['partial', 'Last verified calendar details'], ['other', 'Last verified calendar details']]) {
+  test(`shows ${scenario} calendar freshness without rewriting shared history`, async ({ page }) => {
+    await start(page, scenario)
+    await page.getByRole('button', { name: 'Plan', exact: true }).click()
+    const saved = page.getByRole('button', { name: new RegExp(`16:00.*Synthetic piano lesson.*Shared original room.*${expected.split(' · ')[0]}`) })
+    await expect(saved).toBeVisible()
+    if (scenario === 'changed') await expect(page.getByRole('region', { name: 'Private connected calendars' }).getByText('Private changed piano lesson')).toBeVisible()
+    if (scenario === 'other') await expect(page.getByText(/Private music room|Private changed piano/)).toHaveCount(0)
+    const state = await page.evaluate(scenario => JSON.parse(sessionStorage.getItem(`assistant-builds-state:assistant-builds-calendar-${scenario}`) ?? 'null'), scenario)
+    expect(state).toBeNull() // Reading did not mutate shared records or create work.
+    expect(await actions(page)).toEqual([])
+  })
+}
+for (const operation of ['update', 'delete'] as const) test(`hands an assistant ${operation} to exact existing-event review without a calendar write`, async ({ page }) => {
+  await start(page, 'handoff')
+  await page.getByRole('button', { name: /Move the existing piano lesson.*Private review/ }).click()
+  const assistant = page.getByRole('dialog', { name: 'Sola’s preparation' })
+  await expect(assistant.getByRole('button', { name: 'Share & prepare for approval' })).toHaveCount(0)
+  await assistant.getByRole('button', { name: 'Review existing calendar event' }).click()
+  const event = page.getByRole('dialog', { name: 'Review connected calendar event' })
+  await expect(event.getByLabel('Start time', { exact: true })).toHaveValue('16:00')
+  if (operation === 'delete') await event.getByRole('combobox', { name: 'Action', exact: true }).selectOption('delete')
+  else { await event.getByLabel('Start time', { exact: true }).fill('17:00'); await event.getByLabel('End time', { exact: true }).fill('18:00') }
+  await event.getByRole('checkbox', { name: /Share the original and edited event/ }).check()
+  await event.getByRole('button', { name: 'Prepare calendar change for approval' }).click()
+  await expect(event).toHaveCount(0)
+  const recorded = await actions(page)
+  expect(recorded.map(a => a.action)).toEqual(['calendar-inspect', 'calendar-prepare'])
+  expect(recorded[1].data.preview.eventId).toBe('synthetic-private-event')
+  expect(recorded[1].data.proposed.operation ?? 'save').toBe(operation === 'delete' ? 'delete' : 'save')
+  if (operation === 'update') expect(recorded[1].data.proposed.startTime).toBe('17:00')
+  const state = await page.evaluate(() => JSON.parse(sessionStorage.getItem('assistant-builds-state:assistant-builds-calendar-handoff')!))
+  const prepared = state.jobs.find((j: any) => j._id === 'synthetic-targeted-calendar-job').actions[0]
+  expect(prepared.payload.targetId).toBe('synthetic-existing-target')
+  expect(prepared.status).toBe('review'); expect(prepared.receipts).toEqual([])
+})
+test('keeps calendar edits after supporting context changes and blocks ambiguous generic replacement', async ({ page }) => {
+  await start(page, 'handoff')
+  await page.getByRole('button', { name: /Move the existing piano lesson.*Private review/ }).click()
+  await page.getByRole('button', { name: 'Review existing calendar event' }).click()
+  const event = page.getByRole('dialog', { name: 'Review connected calendar event' })
+  await event.getByLabel('Location', { exact: true }).fill('My unsaved location correction')
+  await page.getByRole('button', { name: 'Simulate changed assistant context' }).evaluate((button: HTMLButtonElement) => button.click())
+  await expect(event.getByLabel('Location', { exact: true })).toHaveValue('My unsaved location correction')
+  await event.getByRole('checkbox', { name: /Share the original and edited event/ }).check()
+  await event.getByRole('button', { name: 'Prepare calendar change for approval' }).click()
+  await expect(event.getByRole('alert')).toContainText('preparation or calendar source changed')
+  expect((await actions(page)).map(a => a.action)).toEqual(['calendar-inspect'])
+  await page.goto('/e2e.html?scenario=assistant-builds-calendar-handoff-ambiguous')
+  await page.getByRole('button', { name: /Move the existing piano lesson.*Private review/ }).click()
+  await expect(page.getByRole('button', { name: 'Review existing calendar event' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Share & prepare for approval' })).toHaveCount(0)
+})

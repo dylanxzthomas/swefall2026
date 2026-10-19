@@ -1,0 +1,19 @@
+appId: com.dylanxzthomas.wren
+---
+# Explicitly authorized retained preview only. Do not clear state, reinstall,
+# submit credentials, choose an account, or run this while a person signs in.
+# The app is already open. Preserve its unsent draft and saved workspace.
+- scrollUntilVisible:
+    element: "Household settings"
+    direction: UP
+- tapOn: "Household settings"
+- scrollUntilVisible:
+    element: "Use a connected account"
+    direction: DOWN
+- tapOn: "Use a connected account"
+- extendedWaitUntil:
+    visible: ".*(Welcome|Log in|Email address).*"
+    timeout: 45000
+# Stop automation here. The owner handles the next action privately, after the
+# driver exits. This screenshot is taken only before any credential entry.
+- takeScreenshot: "native-artifacts/native-sign-in-handoff"

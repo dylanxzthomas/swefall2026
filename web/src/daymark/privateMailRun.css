@@ -1,0 +1,23 @@
+/* Email provenance stays within its conversation turn, behind one disclosure. */
+.dm-private-mail-thread .dm-mail-response { min-width: 0; }
+.dm-private-mail-thread .dm-mail-response-copy { padding: 15px 17px; border-radius: 22px 22px 22px 6px; background: var(--dm-surface); }
+.dm-private-mail-thread .dm-mail-response-copy > p { margin: 0; padding: 0; background: none; border-radius: 0; font-size: var(--dm-body); line-height: 1.55; overflow-wrap: anywhere; }
+.dm-private-mail-thread .dm-mail-response-copy > p + p { margin-top: 12px; }
+.dm-private-mail-thread .dm-mail-response-copy > .dm-mail-issue { padding-left: 10px; font-size: var(--dm-label); }
+.dm-private-mail-thread .dm-mail-response > button { margin-top: 10px; }
+.dm-private-mail-thread .dm-mail-details { margin: 4px 0 0; padding: 0; border: 0; }
+.dm-private-mail-thread .dm-mail-details > summary { display: flex; align-items: center; gap: 5px; width: fit-content; min-height: 44px; padding: 6px 4px; border-radius: 6px; color: var(--dm-muted); font-size: var(--dm-caption); font-weight: 400; line-height: 1.4; list-style: none; cursor: pointer; transition: color 160ms ease, background-color 160ms ease; }
+.dm-private-mail-thread .dm-mail-details > summary::-webkit-details-marker { display: none; }
+.dm-private-mail-thread .dm-mail-details > summary::marker { content: ''; }
+.dm-private-mail-thread .dm-mail-details > summary:focus-visible { outline: 2px solid var(--dm-text); outline-offset: 2px; }
+.dm-private-mail-thread .dm-mail-details > summary:active { background: var(--dm-inset); }
+.dm-private-mail-thread .dm-mail-details[open] > summary { color: var(--dm-text); }
+.dm-private-mail-thread .dm-mail-details-content { padding: 0 4px 8px; min-width: 0; }
+.dm-private-mail-thread .dm-mail-details-content p { margin: 0 0 9px; font-size: var(--dm-caption); line-height: 1.5; overflow-wrap: anywhere; }
+.dm-private-mail-thread .dm-mail-details-content .dm-mail-private { margin-bottom: 8px; }
+.dm-private-mail-thread .dm-mail-coverage-note { color: var(--dm-muted); }
+.dm-private-mail-thread .dm-mail-detail-sources { margin-top: 16px; }
+.dm-private-mail-thread .dm-mail-detail-sources h4 { margin: 0 0 2px; font-size: var(--dm-caption); font-weight: 500; color: var(--dm-muted); }
+.dm-private-mail-thread .dm-mail-detail-sources .dm-mail-source-row { margin: 0; padding: 12px 0; }
+@media (hover: hover) { .dm-private-mail-thread .dm-mail-details > summary:hover { color: var(--dm-text); background: var(--dm-inset); } }
+@media (prefers-reduced-motion: reduce) { .dm-private-mail-thread .dm-mail-details > summary { transition: none; } }

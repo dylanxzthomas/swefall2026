@@ -1,0 +1,24 @@
+.dm-routines { margin: 0 0 20px; border-bottom: 1px solid var(--dm-line); padding-bottom: 12px; }
+.dm-routine-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dm-routine-heading h3 { display: flex; align-items: center; gap: 8px; font-size: var(--dm-label); font-weight: 500; margin: 0; }
+.dm-routine-heading button { font-size: var(--dm-caption); min-height: 44px; }
+.dm-routine-list { background: transparent; padding: 0; margin: 0; }
+.dm-routine-list summary { font-size: var(--dm-caption); color: var(--dm-muted); padding: 10px 0; }
+.dm-routine-list ul, .dm-routine-history ul { list-style: none; padding: 0; margin: 0; }
+.dm-routine-list li + li { border-top: 1px solid var(--dm-line); }
+.dm-routine-list li > button { width: 100%; border: 0; border-radius: 0; background: transparent; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; padding: 14px 0; }
+.dm-routine-list li > button > span { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.dm-routine-list strong { font-size: var(--dm-body); font-weight: 500; }
+.dm-routine-list li span span { color: var(--dm-muted); font-size: var(--dm-caption); }
+.dm-routine-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 2px; margin: 12px 0 20px; }
+.dm-routine-days button { min-height: 44px; padding: 9px 0; font-size: var(--dm-caption); border-radius: 10px; }
+.dm-routine-days button[aria-pressed=true] { background: var(--dm-text); color: var(--dm-bg); }
+.dm-routine-options, .dm-routine-history { margin-top: 20px; }
+.dm-routine-options summary, .dm-routine-history summary { font-size: var(--dm-label); }
+.dm-routine-history li { border-bottom: 1px solid var(--dm-line); padding: 14px 0; }
+.dm-routine-history li time { font-size: var(--dm-caption); color: var(--dm-muted); }
+.dm-routine-history li p { margin: 6px 0; font-size: var(--dm-label); }
+.dm-routine-choices { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 12px; }
+.dm-routine-choices button { min-height: 44px; font-size: var(--dm-label); }
+.dm-mail-routine-sheet .dm-task-form-note { overflow-wrap: anywhere; }
+.dm-mail-routine-history-state { display: block; color: var(--dm-muted); font-size: var(--dm-caption); }

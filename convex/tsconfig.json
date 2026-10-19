@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","lib":["ES2023","DOM"],"module":"ESNext","moduleResolution":"Bundler","strict":true,"skipLibCheck":true,"noEmit":true,"allowJs":true,"types":["node","vite/client"]},"include":["./**/*","../shared/daymark.ts","../shared/vendor.d.ts","../server/model.ts"]}

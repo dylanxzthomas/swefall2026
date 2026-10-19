@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { Hono } from 'hono'
+import { householdApp } from './household/http.js'
 import { streamSSE } from 'hono/streaming'
 import { serveStatic } from '@hono/node-server/serve-static'
 import type { Config } from './config.js'
@@ -68,6 +69,7 @@ const audioUrl = (p: string | null) => (p ? `/audio/${path.basename(p)}` : null)
 
 export function createApp(d: Deps) {
   const app = new Hono()
+  app.route('/api/household', householdApp(d.brain))
 
   app.onError((err, c) => {
     console.error('[http]', err)

@@ -1,0 +1,7 @@
+.dm-connector-requests form { margin-top: 16px; }
+.dm-connector-request-list { margin-top: 20px; }
+.dm-connector-request { padding: 16px 0; border-top: 1px solid var(--dm-line); }
+.dm-connector-request h3 { margin: 0 0 4px; font-size: var(--dm-body); font-weight: 500; }
+.dm-connector-request span { font-size: var(--dm-caption); }
+.dm-connector-request p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 12px; }
+.dm-connector-fallback { margin-top: 18px; }

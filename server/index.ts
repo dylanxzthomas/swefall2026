@@ -23,7 +23,8 @@ Brain:   ${brain.available ? cfg.assistant.model : `mock (${env.mockBrain ? 'WRE
 Voice:   ${voice}      Hearing: ${stt.provider}
 Calendar feeds: ${icsUrls(cfg).length}      Budget: $${cfg.thinking.dailyBudgetUsd}/day
 `)
-  scheduler.start()
+  // Household planning is on demand. Keep the original meeting daemon opt-in.
+  if (process.env.WREN_LEGACY === '1') scheduler.start()
 })
 
 const shutdown = () => {

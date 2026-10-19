@@ -1,0 +1,28 @@
+appId: com.dylanxzthomas.wren.nativeacceptance
+---
+# Actual iOS share sheet and the unmodified production Share extension.
+- tapOn:
+    id: "share-pdf"
+- assertVisible:
+    id: "shareCell"
+    text: "Daymark Native Acceptance"
+# Xcode 27 exposes remote share-cell bounds relative to its sheet. On this
+# explicit iPhone 17 Pro fixture, the captured cell center is (69, 652)/402×874.
+# Assert the named cell before this scoped coordinate workaround.
+- tapOn:
+    point: "17%,75%"
+- assertVisible: "Share with Daymark"
+- tapOn: "Save on this phone"
+- extendedWaitUntil:
+    visible: "Saved on this phone—open Daymark to upload. Nothing has been sent or added to your calendar."
+    timeout: 15000
+- takeScreenshot: "native-artifacts/native-boundary-shared-pdf"
+- tapOn: "Cancel"
+- tapOn:
+    id: "check-pdf"
+- extendedWaitUntil:
+    visible: "PASS share-pdf"
+    timeout: 15000
+# Image sharing has a different system activity order. It is deliberately not
+# asserted by this fixed-layout PDF flow; the native image check remains available.
+- runFlow: "calendar-permission.yaml"

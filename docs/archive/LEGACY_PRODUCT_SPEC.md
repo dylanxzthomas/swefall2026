@@ -1,3 +1,5 @@
+> Historical reference. The current plan is in [the build spec](../MVP_BUILD_SPEC.md); current status is in [README](../../README.md).
+
 # Wren
 
 Wren is a personal voice assistant for managing work and social commitments. It schedules short conversations with you, prepares you for meetings, remembers what you tell it, and follows up on unfinished tasks.

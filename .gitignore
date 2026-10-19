@@ -7,3 +7,14 @@ web/dist
 
 .env.*
 !.env.example
+
+# Local verification and account sessions
+playwright-report/
+test-results/
+visual-results/
+visual-report/
+.auth/
+.convex/
+.vercel/
+
+native-artifacts/
